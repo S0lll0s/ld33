@@ -1,0 +1,5 @@
+*.lua
+build
+dist
+!src/lib/**
+!src/assets/maps/*.lua
