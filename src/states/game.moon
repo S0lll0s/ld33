@@ -16,6 +16,7 @@ class Player
     @body = lp.newBody GAME.world, x, y, "dynamic"
     @fix  = lp.newFixture @body, lp.newCircleShape 15
     @body\setUserData @
+    @body\setBullet true
     @lunge = 0
 
   isDown: (keyspec) =>
@@ -58,16 +59,38 @@ class Player
     lg.setColor 255, 255, 255
     lg.circle "fill", x, y, 15
 
-  HIT_RANGE = 20
+  rayCast: (pos, delta, cb) =>
+    tgt = pos + delta
+    GAME.world\rayCast pos.x, pos.y, tgt.x, tgt.y, cb
+
+  HIT_RANGE = 30
   primary_down: =>
     world = GAME.world
     pos = Vec @body\getPosition!
     delta = Vec(GAME.camera\toWorld lm.getPosition!) - pos
-    delta = pos + delta\normalized! * HIT_RANGE
-    world\raycast pos.x, pos.y, delta.x, delta.y, (fix, x, y, nx, ny, fract) ->
+    delta = delta\normalized! * HIT_RANGE
+
+    res = {}
+    cb = (fix, x, y, nx, ny, fract) ->
       if fix\getBody! == @body
         return -1
-      other = fix\getBody!\getUserdata!
+      other = fix\getBody!\getUserData!
+      res[other] = true
+      return -1
+
+
+    @rayCast pos, delta, cb
+    @rayCast pos, delta\rotated( .4), cb
+    @rayCast pos, delta\rotated(-.4), cb
+
+    for other,_ in pairs res
+      if other.hit
+        other\hit delta
+      if other.body
+        other.body\applyLinearImpulse (delta/2)\unpack!
+
+  pos: =>
+    Vec @body\getPosition!
 
   secondary_down: =>
     if @lunge > 1.5
@@ -86,14 +109,14 @@ class Game
     @map = Sti.new "assets/maps/level-#{level}"
     @world = lp.newWorld!
     @camera = Gamera 0, 0, @map.width*@map.tilewidth, @map.height*@map.tileheight
-    @camera\setScale 4
+    @camera\setScale 2 --4
 
     @collision = {}
     assert @map.layers.collision and @map.layers.collision.type == "objectgroup"
     for box in *@map.layers.collision.objects
       body = lp.newBody @world, box.x + box.width/2, box.y + box.height/2, "static"
       fix  = lp.newFixture body, lp.newRectangleShape box.width, box.height
-      body\setUserData table.insert @collision, :body, :fix
+      body\setUserData table.insert @collision, :body, :fix, world: true
     @map\removeLayer "collision"
 
     assert @map.layers.entities and @map.layers.entities.type == "objectgroup"
@@ -105,15 +128,18 @@ class Game
     @camera\setPosition @lag\unpack!
 
     for i=1,20
-      table.insert @ents, (if math.random! < 0.2 then Enemy else Person) @lag + Vec(math.random!, math.random!) * 200
+      table.insert @ents, (if math.random! < 0.4 then Enemy else Person) @lag + Vec(math.random!, math.random!) * 200
     
   update: (prev, dt) =>
     delta = Vec(@player.body\getPosition!) - @lag
     @lag += delta * .1
 
     @player\update dt
-    for ent in *@ents
-      ent\update dt
+    for i=#@ents,1,-1
+      if @ents[i].destroy
+        table.remove @ents, i
+        continue
+      @ents[i]\update dt
     @world\update dt
     @camera\setPosition @lag\unpack!
 
@@ -124,7 +150,7 @@ class Game
         lg.polygon "line", obj.body\getWorldPoints obj.fix\getShape!\getPoints!
       @player\draw!
       for ent in *@ents
-        ent\draw!
+        ent\draw! if ent.draw and not ent.destroy
 
     lg.setColor 0, 0, 0
     lg.rectangle "fill", 20, 22, 10*@player.lunge, 8
@@ -137,6 +163,8 @@ class Game
       when "escape"
         love.event.push "quit"
         true
+      when "lshift"
+        @ragemode = not @ragemode
       else
         @player\keypressed key
 

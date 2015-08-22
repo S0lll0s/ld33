@@ -97,6 +97,11 @@ function vector.__le(a,b)
 	return a.x <= b.x and a.y <= b.y
 end
 
+function vector:set(x,y)
+  self.x, self.y = x, y
+  return self
+end
+
 function vector.permul(a,b)
 	assert(isvector(a) and isvector(b), "permul: wrong argument types (<vector> expected)")
 	return new(a.x*b.x, a.y*b.y)
@@ -187,6 +192,10 @@ end
 
 function vector:trimmed(maxLen)
 	return self:clone():trim_inplace(maxLen)
+end
+
+function vector:isNull()
+  return self.x == 0 and self.y == 0
 end
 
 
