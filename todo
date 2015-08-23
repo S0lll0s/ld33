@@ -3,6 +3,11 @@
 - particles
   - blood (persistant!)
   - attack sword lines
+- main & pause menu
+- win / lose condition:
+  - timelimit?
+  - kill all bad guys?
+- game over screen
 - graphics
   - player
     - walk cycle
@@ -10,3 +15,5 @@
     - lunge stance, lunge charge, lunge end animation
   - enemies, civilian walk cycles
   - level tiles (or non-tiles? maybe huge individual tiles that can be plugged together for a diverse level)
+  - logo   -> name
+  - menu background ???
