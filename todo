@@ -1,4 +1,12 @@
-movement:
-  - WASD running
-  - lunge
-
+- lungekills
+- score counting
+- particles
+  - blood (persistant!)
+  - attack sword lines
+- graphics
+  - player
+    - walk cycle
+    - attack
+    - lunge stance, lunge charge, lunge end animation
+  - enemies, civilian walk cycles
+  - level tiles (or non-tiles? maybe huge individual tiles that can be plugged together for a diverse level)
