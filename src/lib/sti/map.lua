@@ -795,6 +795,7 @@ function Map:update(dt)
 end
 
 function Map:draw(sx, sy)
+  local cvs = framework.getCanvas()
 	framework.setCanvas(self.canvas)
 	framework.clear(self.canvas)
 
@@ -804,7 +805,7 @@ function Map:draw(sx, sy)
 		end
 	end
 
-	framework.setCanvas()
+	framework.setCanvas(cvs)
 
 	framework.push()
 	framework.origin()

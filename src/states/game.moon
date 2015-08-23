@@ -105,10 +105,26 @@ class Player
     @body\applyLinearImpulse (delta\normalized! * -@lunge * 600)\unpack!
 
 class Game
+  canvas: lg.newCanvas!
+  shader: lg.isSupported("shader") and lg.newShader "
+    extern number amount;
+    
+    vec4 effect( vec4 color, Image texture, vec2 texture_coords, vec2 screen_coords ) {
+      vec4 texcolor = Texel(texture, texture_coords);
+      vec4 avg = vec4(dot(texcolor.rgb, vec3(1.0f))/3.0f);
+      avg.a = texcolor.a;
+      return mix(texcolor, avg, amount);
+    }", "
+    vec4 position( mat4 transform_projection, vec4 vertex_position ) {
+      return transform_projection * vertex_position;
+    }"
+
   enter: (level=1) =>
     @ents   = {}
     @score  = good: 0, bad: 0, scale: 1, grot: 0, brot: 0
-    @fadeOut= 1
+    @timescale = 1
+    @fadeOut   = 1
+    @colorAmnt = 0
     Flux.to @, 0.3, fadeOut: 0
 
     @timeleft = 30
@@ -146,10 +162,14 @@ class Game
       Flux.to @, 1.0, fadeOut: 1
     else
       @timeleft -= dt
-
-    if @beastmode and @beastmode < 0
-      @beastmode = math.min 0, @beastmode + dt
-      dt = dt/3
+  
+    dt *= @timescale
+    if @beastmode
+      @beastmode -= dt
+      if @beastmode < 0
+        @beastmode = nil
+        -- @TODO: player animation
+        Flux.to(@, 1, colorAmnt: 0)
 
     delta = Vec(@player.body\getPosition!) - @lag
     @lag += delta * .1
@@ -164,6 +184,7 @@ class Game
     @camera\setPosition @lag\unpack!
 
   draw: (prev) =>
+    lg.setCanvas @canvas
     @camera\draw ->
       @map\draw!
       for obj in *@collision
@@ -171,6 +192,14 @@ class Game
       @player\draw!
       for ent in *@ents
         ent\draw! if ent.draw and not ent.destroy
+
+    if @canvas and @shader
+      lg.setCanvas!
+      @shader\send "amount", @colorAmnt
+      lg.setShader @shader
+      lg.setColor 255, 255, 255, 255
+      lg.draw @canvas
+      lg.setShader!
 
     lg.setColor 0, 0, 0
     lg.rectangle "fill", 20, 22, 10*@player.lunge, 8
@@ -194,11 +223,20 @@ class Game
     lg.setColor 0, 0, 0, @fadeOut * 255
     lg.rectangle "fill", 0, 0, SCREEN\unpack!
 
+  BEAST_DURATION = 8
+  do_beast: =>
+    @beastmode = BEAST_DURATION
+    Flux.to(@, 0.2, timescale: 0.7)\after(0.2, timescale: 1)\delay 0.4
+    Flux.to(@, 0.4, colorAmnt: 0.6)
+
   addScore: (kind) =>
     @score.good += if kind == "Enemy" then 20 else -5
     @score.bad  += 10
     @score.tween\stop! if @score.tween
     @score.tween = Flux.to(@score, .5, scale: 1.5, grot: math.random!/2-.25, brot: math.random!/2-.25)\after(.3, scale: 1, grot: 0, brot: 0)\delay .2
+  
+    @do_beast! unless @beastmode
+    @beastmode = BEAST_DURATION
 
   keypressed: (prev, key) =>
     return prev if prev
@@ -207,7 +245,7 @@ class Game
         St8.push require "states.pause"
         true
       when "lshift"
-        @beastmode = if @beastmode then nil else -1
+        @do_beast!
       else
         @player\keypressed key
 

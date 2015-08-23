@@ -2,23 +2,21 @@
 
 class Menu
   anim:  Animations.soul
-  if love.graphics.isSupported "shader"
-    @shader = love.graphics.newShader "
-      extern number blink;
-      
-      vec4 effect( vec4 color, Image texture, vec2 texture_coords, vec2 screen_coords ) {
-        vec4 texcolor = Texel(texture, texture_coords);
-        number val = screen_coords.x + screen_coords.y / -4;
-        if ( val > blink - 30.0f && val < blink + 30.0f ) {
-          color = color + vec4(0.5f, 0.5f, 0.5f, 1.0f);
-        }
-        return texcolor * color;
-      }",
-      "
-      vec4 position( mat4 transform_projection, vec4 vertex_position ) {
-        return transform_projection * vertex_position;
-      }"
-    @shader\send "blink", 0
+  shader : love.graphics.isSupported("shader") and love.graphics.newShader "
+    extern number blink;
+    
+    vec4 effect( vec4 color, Image texture, vec2 texture_coords, vec2 screen_coords ) {
+      vec4 texcolor = Texel(texture, texture_coords);
+      number val = screen_coords.x + screen_coords.y / -4;
+      if ( val > blink - 30.0f && val < blink + 30.0f ) {
+        color = color + vec4(0.5f, 0.5f, 0.5f, 1.0f);
+      }
+      return texcolor * color;
+    }",
+    "
+    vec4 position( mat4 transform_projection, vec4 vertex_position ) {
+      return transform_projection * vertex_position;
+    }"
 
   enter: =>
     @logoalpha = 0
@@ -29,6 +27,7 @@ class Menu
     blink = ->
       @swag = Flux.to(@, .5, play: 0)\after(.5, play:1)\oncomplete blink
     blink!
+    @shader\send "blink", 0 if @shader
 
   draw: (prev) =>
     lg.setColor 120, 120, 120

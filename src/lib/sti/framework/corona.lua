@@ -37,6 +37,7 @@ framework.newQuad			= lg.newQuad
 framework.polygon			= lg.polygon
 framework.rectangle			= lg.rectangle
 framework.setColor			= lg.setColor
+framework.getCanvas			= lg.getCanvas
 framework.setCanvas			= lg.setCanvas
 framework.origin			= lg.origin
 framework.pop				= lg.pop
