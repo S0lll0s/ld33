@@ -1,4 +1,6 @@
 *.lua
+*.love
+*.zip
 build
 dist
 !src/lib/**
