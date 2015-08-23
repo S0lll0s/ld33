@@ -109,7 +109,7 @@ class Game
     @map = Sti.new "assets/maps/level-#{level}"
     @world = lp.newWorld!
     @camera = Gamera 0, 0, @map.width*@map.tilewidth, @map.height*@map.tileheight
-    @camera\setScale 2 --4
+    @camera\setScale 4
 
     @collision = {}
     assert @map.layers.collision and @map.layers.collision.type == "objectgroup"

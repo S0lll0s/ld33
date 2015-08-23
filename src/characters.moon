@@ -38,7 +38,7 @@ class Person
 
     @steering += 0.3 * @wander dt
     @steering += 1.0 * @seperate!
-    @steering += 0.5 * @flee GAME.player\pos!
+    @steering += 0.7 * @flee GAME.player\pos! if GAME.ragemode
     @steering += 0.5 * @evade!
 
     @steering\trim_inplace MAX_FORCE
@@ -76,9 +76,14 @@ class Person
   seperate: =>
     sum, cnt = Vec!, 0
     for o in *GAME.ents
+      continue if o.destroy
       delta = @pos! - o\pos!
       if not delta\isNull! and delta\len2! < DESIRED_DIST2
         sum += delta / delta\len!
+
+    delta = @pos! - GAME.player\pos!
+    if not delta\isNull! and delta\len2! < DESIRED_DIST2*2
+      sum += delta / delta\len!
 
     sum\normalized! * MAX_VEL
 
