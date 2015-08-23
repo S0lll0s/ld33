@@ -20,7 +20,7 @@ class Person
   draw: =>
     pos = @pos!
 
-    if GAME.ragemode
+    if GAME.beastmode
       lg.setColor 255, 255, 255, @color[4]
       @soul\draw Sprites.soul, pos.x, pos.y + (@color[4]-255)*.05, @rot, @scale, @scale, 5, 5
     else
@@ -31,14 +31,14 @@ class Person
   MAX_VEL   = 50
   update: (dt) =>
     @steering\set 0, 0
-    if GAME.ragemode
+    if GAME.beastmode
       @soul\update dt * math.random! * 2
     else
       @anim\update dt
 
     @steering += 0.3 * @wander dt
     @steering += 1.0 * @seperate!
-    @steering += 0.7 * @flee GAME.player\pos! if GAME.ragemode
+    @steering += 0.7 * @flee GAME.player\pos! if GAME.beastmode
     @steering += 0.5 * @evade!
 
     @steering\trim_inplace MAX_FORCE
@@ -49,7 +49,7 @@ class Person
     Flux.to @color, 1, [4]: 0
     Flux.to(@, 1, rot: math.random!-0.5, scale: 1.2)\oncomplete ->
       @destroy = true
-      @body\destroy!
+      @body\destroy! unless @body\isDestroyed!
 
   vel: =>
     Vec @body\getLinearVelocity!

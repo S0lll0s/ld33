@@ -108,6 +108,7 @@ class Game
 
     @map = Sti.new "assets/maps/level-#{level}"
     @world = lp.newWorld!
+    @world\setCallbacks @\beginTouch
     @camera = Gamera 0, 0, @map.width*@map.tilewidth, @map.height*@map.tileheight
     @camera\setScale 4
 
@@ -131,6 +132,12 @@ class Game
       table.insert @ents, (if math.random! < 0.4 then Enemy else Person) @lag + Vec(math.random!, math.random!) * 200
     
   update: (prev, dt) =>
+    return prev if prev
+
+    if @beastmode and @beastmode < 0
+      @beastmode = math.min 0, @beastmode + dt
+      dt = dt/3
+
     delta = Vec(@player.body\getPosition!) - @lag
     @lag += delta * .1
 
@@ -160,19 +167,18 @@ class Game
   keypressed: (prev, key) =>
     return prev if prev
     switch key
-      when "escape"
-        love.event.push "quit"
+      when "escape", "p"
+        St8.push require "states.pause"
         true
       when "lshift"
-        @ragemode = not @ragemode
+        @beastmode = if @beastmode then nil else -1
       else
         @player\keypressed key
 
   keyreleased: (prev, key) =>
     return prev if prev
     switch key
-      when "escape"
-        print "nope"
+      when "escape" then true
       else
         @player\keyreleased key
 
@@ -186,6 +192,32 @@ class Game
     spec = (-> for k,v in pairs mousetrans do return k if v == btn)!
     @player\keyreleased spec, @camera\toWorld x, y
 
+  beginTouch: (a, b, cont) =>
+    a, b = a\getBody!\getUserData!, b\getBody!\getUserData!
+    return unless a and b
+
+    local chr, ply, wld
+
+    if a.__class
+      switch a.__class.__name
+        when "Person", "Enemy"
+          chr = a
+        when "Player"
+          ply = a
+    elseif a.world
+      wld = a
+
+    if b.__class
+      switch b.__class.__name
+        when "Person", "Enemy"
+          chr = b
+        when "Player"
+          ply = b
+    elseif b.world
+      wld = b
+    
+    if ply and chr and ply.lunge < 0 -- do this better
+      chr\hit!
 
 GAME = Game!
 return GAME
