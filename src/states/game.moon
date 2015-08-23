@@ -108,6 +108,10 @@ class Game
   enter: (level=1) =>
     @ents   = {}
     @score  = good: 0, bad: 0, scale: 1, grot: 0, brot: 0
+    @fadeOut= 1
+    Flux.to @, 0.3, fadeOut: 0
+
+    @timeleft = 30
 
     @map = Sti.new "assets/maps/level-#{level}"
     @world = lp.newWorld!
@@ -136,6 +140,12 @@ class Game
     
   update: (prev, dt) =>
     return prev if prev
+
+    if @timeleft < 0
+      dt = 0
+      Flux.to @, 1.0, fadeOut: 1
+    else
+      @timeleft -= dt
 
     if @beastmode and @beastmode < 0
       @beastmode = math.min 0, @beastmode + dt
@@ -174,6 +184,15 @@ class Game
     lg.printf "SCORE", x-50, 20, 100, "center"
     lg.printf tostring(@score.good), x-5, 45, 50, "right", @score.grot, @score.scale, @score.scale, 50, 5
     lg.printf tostring(@score.bad),  x+5, 45, 50, "left",  @score.brot, @score.scale, @score.scale, 0, 5
+
+    time = math.floor @timeleft
+    secs = time % 60
+    time -= secs
+    time = "#{time/60}:#{secs}"
+    lg.printf time, 0, 30, SCREEN.x, "center"
+
+    lg.setColor 0, 0, 0, @fadeOut * 255
+    lg.rectangle "fill", 0, 0, SCREEN\unpack!
 
   addScore: (kind) =>
     @score.good += if kind == "Enemy" then 20 else -5
