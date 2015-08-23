@@ -51,6 +51,8 @@ class Person
       @destroy = true
       @body\destroy! unless @body\isDestroyed!
 
+    GAME\addScore @@__name, 1
+
   vel: =>
     Vec @body\getLinearVelocity!
   pos: =>

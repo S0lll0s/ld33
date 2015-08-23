@@ -66,7 +66,7 @@ class Player
   HIT_RANGE = 30
   primary_down: =>
     world = GAME.world
-    pos = Vec @body\getPosition!
+    pos = @pos!
     delta = Vec(GAME.camera\toWorld lm.getPosition!) - pos
     delta = delta\normalized! * HIT_RANGE
 
@@ -91,6 +91,8 @@ class Player
 
   pos: =>
     Vec @body\getPosition!
+  vel: =>
+    Vec @body\getLinearVelocity!
 
   secondary_down: =>
     if @lunge > 1.5
@@ -105,6 +107,7 @@ class Player
 class Game
   enter: (level=1) =>
     @ents   = {}
+    @score  = good: 0, bad: 0, scale: 1, grot: 0, brot: 0
 
     @map = Sti.new "assets/maps/level-#{level}"
     @world = lp.newWorld!
@@ -164,6 +167,20 @@ class Game
     lg.setColor 255, 255, 255
     lg.rectangle "line", 20, 20, 150, 10
 
+    lg.setColor 0, 0, 0, 100
+    lg.rectangle "fill", 0, 0, SCREEN.x, 100
+
+    x = (SCREEN.x - 150)
+    lg.printf "SCORE", x-50, 20, 100, "center"
+    lg.printf tostring(@score.good), x-5, 45, 50, "right", @score.grot, @score.scale, @score.scale, 50, 5
+    lg.printf tostring(@score.bad),  x+5, 45, 50, "left",  @score.brot, @score.scale, @score.scale, 0, 5
+
+  addScore: (kind) =>
+    @score.good += if kind == "Enemy" then 20 else -5
+    @score.bad  += 10
+    @score.tween\stop! if @score.tween
+    @score.tween = Flux.to(@score, .5, scale: 1.5, grot: math.random!/2-.25, brot: math.random!/2-.25)\after(.3, scale: 1, grot: 0, brot: 0)\delay .2
+
   keypressed: (prev, key) =>
     return prev if prev
     switch key
@@ -216,8 +233,10 @@ class Game
     elseif b.world
       wld = b
     
-    if ply and chr and ply.lunge < 0 -- do this better
-      chr\hit!
+    if ply and chr
+      impact_vel = ply\vel! - chr\vel!
+      if impact_vel\len2! > 80^2 and ply.lunge < 0
+        chr\hit!
 
 GAME = Game!
 return GAME

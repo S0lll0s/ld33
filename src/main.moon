@@ -62,8 +62,11 @@ love.load = ->
   SCREEN = Vec love.graphics.getDimensions!
   
   -- love.graphics.setNewFont "assets/font.ttf", 18
-  
-  St8.init require "states.menu"
+
+  if arg[#arg] == "game"
+    St8.init require "states.game"
+  else
+    St8.init require "states.menu"
   St8.order "draw", "bottom"
   love.mouse.setGrabbed true
 

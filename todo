@@ -1,8 +1,7 @@
-- score counting
 - particles
   - blood (persistant!)
   - attack sword lines
-- main & pause menu
+- pause menu
 - win / lose condition:
   - timelimit?
   - kill all bad guys?
