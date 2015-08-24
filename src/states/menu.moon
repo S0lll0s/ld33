@@ -21,11 +21,11 @@ class Menu
     @logoalpha = 0
     @blink     = 0
     @play      = 0
-    @fadeOut   = 0
-    Flux.to(@, 0.4, logoalpha: 1)\delay(.1)\after(.8, blink: 1)\ease("linear")\after(.8, blink: 0)\ease "linear"
+    @fadeOut   = 1
+
     blink = ->
       @swag = Flux.to(@, .5, play: 0)\after(.5, play:1)\oncomplete blink
-    blink!
+    Flux.to(@, 0.5, fadeOut: 0)\after(0.4, logoalpha: 1)\oncomplete(blink)\after(.8, blink: 1)\ease("linear")\after(.8, blink: 0)\ease "linear"
     @shader\send "blink", 0 if @shader
 
   draw: (prev) =>

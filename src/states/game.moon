@@ -150,7 +150,7 @@ class Game
     @timescale = 1
     @fadeOut   = 1
     @colorAmnt = 0
-    Flux.to @, 0.3, fadeOut: 0
+    Flux.to @, 0.5, fadeOut: 0
 
     @timeleft = 30
 
