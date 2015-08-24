@@ -2,9 +2,10 @@ Anim8 = require "lib.anim8"
 
 {graphics: lg} = love
 
-Sprite = {}
-for sprite in *{"soul", "swipe", "player"}
-  Sprite[sprite] = lg.newImage "assets/graphics/#{sprite}.png"
+Sprite = setmetatable {}, __index: (sprite) =>
+  img = lg.newImage "assets/graphics/#{sprite}.png"
+  @[sprite] = img
+  img
 
 Animation = {}
 

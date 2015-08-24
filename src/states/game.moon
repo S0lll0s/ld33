@@ -18,6 +18,7 @@ class Player
     @body\setUserData @
     @body\setBullet true
     @lunge = 0
+    @facing = Vec!
     @idle = Animation.player_idle
     @walk = Animation.player_walk
     @anim = @idle
@@ -57,7 +58,7 @@ class Player
       desired += Vec 1, 0
     desired\normalize_inplace MAX_VEL
     
-    diff = desired - Vec @body\getLinearVelocity!
+    diff = desired - @vel!
     diff *= ACCEL * @body\getMass!
     @body\applyForce diff\unpack!
 
@@ -71,10 +72,12 @@ class Player
       @idle\gotoFrame 1 unless @anim == @idle
       @anim = @idle
 
+    @facing = Vec(GAME.camera\toWorld lm.getPosition!) - @pos!
+
   draw: =>
     x, y = @body\getPosition!
     lg.setColor 255, 255, 255
-    @anim\draw Sprite.player, x, y, (Vec(lm.getPosition!)-SCREEN/2)\angleTo!, 1, 1, 7, 8
+    @anim\draw Sprite.player, x, y, @facing\angleTo!, 1, 1, 7, 8
     @primary\draw Sprite.swipe, x, y, @primary.rot, 1, 1, -5, 9 if @primary
 
   pos: =>
@@ -90,8 +93,7 @@ class Player
   primary_down: =>
     world = GAME.world
     pos = @pos!
-    delta = Vec(GAME.camera\toWorld lm.getPosition!) - pos
-    delta = delta\normalized! * HIT_RANGE
+    delta = @facing\normalized! * HIT_RANGE
 
     res = {}
     cb = (fix, x, y, nx, ny, fract) ->
