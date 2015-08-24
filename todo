@@ -3,6 +3,9 @@
   - attack sword lines
 - pause menu
 - graphics
+  - beastmode bar (gets reset to max with every kill)
+    - outer frame
+    - colored inset that get's drawn up to current beastmode % (could be a color gradient for ex)
   - player
     - lunge stance, lunge charge, lunge end animation
     - beast mode anim
