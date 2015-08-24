@@ -120,6 +120,8 @@ class Game
     }"
 
   enter: (level=1) =>
+    GAME = @
+
     @ents   = {}
     @score  = good: 0, bad: 0, scale: 1, grot: 0, brot: 0
     @timescale = 1
@@ -127,7 +129,7 @@ class Game
     @colorAmnt = 0
     Flux.to @, 0.3, fadeOut: 0
 
-    @timeleft = 30
+    @timeleft = 3-- 30
 
     @map = Sti.new "assets/maps/level-#{level}"
     @world = lp.newWorld!
@@ -157,9 +159,11 @@ class Game
   update: (prev, dt) =>
     return prev if prev
 
+    return if @done
+
     if @timeleft < 0
-      dt = 0
-      Flux.to @, 1.0, fadeOut: 1
+      Flux.to(@, .4, fadeOut: 1)\oncomplete -> St8.swap @, require("states.gameover"), @score
+      @done = true
     else
       @timeleft -= dt
   
@@ -295,5 +299,4 @@ class Game
       if impact_vel\len2! > 80^2 and ply.lunge < 0
         chr\hit!
 
-GAME = Game!
-return GAME
+return Game

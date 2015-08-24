@@ -63,11 +63,10 @@ love.load = ->
   
   -- love.graphics.setNewFont "assets/font.ttf", 18
 
-  if arg[#arg] == "game"
-    St8.init require "states.game"
-  else
-    St8.init require "states.menu"
   St8.order "draw", "bottom"
+  St8.init  require "states.menu"
+  St8.pause require("states.game")! if arg[#arg] == "game"
+
   love.mouse.setGrabbed true
 
 love.update = (dt) ->

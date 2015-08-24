@@ -20,4 +20,4 @@ class Pause
       when "p", "escape" then St8.pop!
     true
 
-Pause
+Pause!

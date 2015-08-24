@@ -132,7 +132,7 @@ end
 ------------------------
 -- resume previous _Stack_
 function St8.resume(...)
-  assert(#St8.stacks ~= 0, "no Stack to resume!")
+  assert(#St8.stacks > 1, "no Stack to resume!")
   local r = St8.handle("exit", ...)
   table.remove(St8.stacks)
   St8.handle("resume", ...)

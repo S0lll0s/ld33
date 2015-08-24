@@ -2,7 +2,7 @@
 
 class Menu
   anim:  Animations.soul
-  shader : love.graphics.isSupported("shader") and love.graphics.newShader "
+  shader: love.graphics.isSupported("shader") and love.graphics.newShader "
     extern number blink;
     
     vec4 effect( vec4 color, Image texture, vec2 texture_coords, vec2 screen_coords ) {
@@ -12,8 +12,7 @@ class Menu
         color = color + vec4(0.5f, 0.5f, 0.5f, 1.0f);
       }
       return texcolor * color;
-    }",
-    "
+    }", "
     vec4 position( mat4 transform_projection, vec4 vertex_position ) {
       return transform_projection * vertex_position;
     }"
@@ -54,7 +53,7 @@ class Menu
     switch key
       when " "
         @swag\stop! if @swag
-        Flux.to(@, 0.6, fadeOut: 1)\oncomplete -> St8.pause require "states.game"
+        Flux.to(@, 0.6, fadeOut: 1)\oncomplete -> St8.pause require("states.game")!
       when "escape"
         love.event.quit!
 
