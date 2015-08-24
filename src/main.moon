@@ -69,6 +69,7 @@ love.load = ->
   St8.pause require("states.game")! if arg[#arg] == "game"
 
   Sound.hit, Sound.mutate, Sound.demutate -- preload these
+  Sound[fullname: "surreal-palace.mp3", typ: "stream"]!\setLooping true
 
   love.mouse.setGrabbed true
 

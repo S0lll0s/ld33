@@ -42,6 +42,7 @@ class Person
     @steering += 0.5 * @evade!
 
     @steering\trim_inplace MAX_FORCE
+    @steering *= 0.7
     @body\applyForce @steering\unpack!
 
   hit: (delta) =>

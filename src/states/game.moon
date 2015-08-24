@@ -165,19 +165,21 @@ class Game
     @camera\setScale 4
 
     @collision = {}
-    assert @map.layers.collision and @map.layers.collision.type == "objectgroup"
+    assert @map.layers.collision and @map.layers.collision.type == "objectgroup", "no collision layer"
     for box in *@map.layers.collision.objects
       body = lp.newBody @world, box.x + box.width/2, box.y + box.height/2, "static"
       fix  = lp.newFixture body, lp.newRectangleShape box.width, box.height
       body\setUserData table.insert @collision, :body, :fix, world: true
     @map\removeLayer "collision"
 
-    assert @map.layers.entities and @map.layers.entities.type == "objectgroup"
+    assert @map.layers.entities and @map.layers.entities.type == "objectgroup", "no entitity layer"
     for ent in *@map.layers.entities.objects
-      table.insert @ents, Entities[ent.type], ent
-
-    @player = Player 200, 200
-    @lag = Vec 200, 200
+      switch ent.type
+        when "player"
+          @player = Player ent.x, ent.y
+    
+    assert @player, "no player"
+    @lag = @player\pos!\clone!
     @camera\setPosition @lag\unpack!
 
     for i=1,20
