@@ -1,6 +1,5 @@
 - particles
   - blood (persistant!)
-  - attack sword lines
 - graphics
   - beastmode bar (gets reset to max with every kill)
     - outer frame

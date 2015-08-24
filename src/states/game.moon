@@ -57,13 +57,15 @@ class Player
     if @isDown "right"
       desired += Vec 1, 0
     desired\normalize_inplace MAX_VEL
+
+    desired = Vec! if GAME.beastfade or (GAME.beastmode and @isDown "secondary")
     
     diff = desired - @vel!
     diff *= ACCEL * @body\getMass!
     @body\applyForce diff\unpack!
 
     @lunge += dt * 2
-    @lunge = math.min @lunge, if @isDown "secondary" then 3.5 else 1.5
+    @lunge = math.min @lunge, if GAME.beastmode and @isDown "secondary" then 3.5 else 1.5
 
     if @vel!\len2! > (10^2)
       @walk\gotoFrame 1 unless @anim == @walk
@@ -89,11 +91,11 @@ class Player
     tgt = pos + delta
     GAME.world\rayCast pos.x, pos.y, tgt.x, tgt.y, cb
 
-  HIT_RANGE = 30
   primary_down: =>
-    world = GAME.world
+    return if @primary
+
     pos = @pos!
-    delta = @facing\normalized! * HIT_RANGE
+    delta = @facing\normalized! * if GAME.beastmode then 35 else 15
 
     res = {}
     cb = (fix, x, y, nx, ny, fract) ->
@@ -118,14 +120,16 @@ class Player
         other.body\applyLinearImpulse (delta/2)\unpack!
 
   secondary_down: =>
+    return unless GAME.beastmode
     if @lunge > 1.5
       @lungestate = "charging"
       @lunge = 0
 
   secondary_up: (x, y) =>
+    return unless GAME.beastmode
     @lunge = -math.clamp @lunge-1.5, 0, 2
     delta = Vec(x, y) - Vec @body\getPosition!
-    @body\applyLinearImpulse (delta\normalized! * -@lunge * 600)\unpack!
+    @body\applyLinearImpulse (delta\normalized! * -@lunge * 150)\unpack!
 
 class Game
   canvas: lg.newCanvas!
@@ -152,7 +156,7 @@ class Game
     @colorAmnt = 0
     Flux.to @, 0.5, fadeOut: 0
 
-    @timeleft = 30
+    @timeleft = 90
 
     @map = Sti.new "assets/maps/level-#{level}"
     @world = lp.newWorld!
@@ -194,7 +198,12 @@ class Game
     if @beastmode
       @beastmode -= dt
       if @beastmode < 2
-        @beastfade = Flux.to(@, 2, colorAmnt: 0)\oncomplete (-> @beastmode, @beastfade = nil, nil) unless @beastfade
+        --Sound.demutate! unless @beastfade
+        Sound.growl2! unless @beastfade
+        @beastfade = Flux.to(@, 2, colorAmnt: 0)\oncomplete (->
+          @beastmode = nil
+          @beastfade = nil
+        ) unless @beastfade
 
     delta = Vec(@player.body\getPosition!) - @lag
     @lag += delta * .1
@@ -250,6 +259,8 @@ class Game
 
   BEAST_DURATION = 8
   do_beast: =>
+    Sound.growl! unless @beastmode
+    --Sound.mutate! unless @beastmode
     @beastmode = BEAST_DURATION
     @beastfade\stop! if @beastfade
     @beastfade = nil

@@ -10,6 +10,7 @@ Sti     = require "lib.sti"
 Bump    = require "lib.bump"
 
 import Sprite, Animation from require "sprites"
+import Sound             from require "sound"
 
 SCREEN = Vec!
 
@@ -66,6 +67,8 @@ love.load = ->
   St8.order "draw", "bottom"
   St8.init  require "states.menu"
   St8.pause require("states.game")! if arg[#arg] == "game"
+
+  Sound.hit, Sound.mutate, Sound.demutate -- preload these
 
   love.mouse.setGrabbed true
 
