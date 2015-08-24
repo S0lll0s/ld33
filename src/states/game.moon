@@ -14,10 +14,17 @@ mousetrans = {lmb: "l", rmb: "r", mmb: "m", m4: "x1", m5: "x", mwup: "wu", mwdn:
 class Player
   new: (x, y, @controls=up: "w", left: "a", right: "d", down: "s", primary: "lmb", secondary: "rmb", charge: "mmb") =>
     @body = lp.newBody GAME.world, x, y, "dynamic"
-    @fix  = lp.newFixture @body, lp.newCircleShape 15
+    @fix  = lp.newFixture @body, lp.newCircleShape 8
     @body\setUserData @
     @body\setBullet true
     @lunge = 0
+    @idle = Animation.player_idle
+    @walk = Animation.player_walk
+    @anim = @idle
+    @swipe = Animation.swipe
+    @swipe.onLoop = (swp) ->
+      @primary = nil
+      swp\pauseAtStart!
 
   isDown: (keyspec) =>
     key = @controls[keyspec]
@@ -36,6 +43,9 @@ class Player
   MAX_VEL = 100
   ACCEL = 5
   update: (dt) =>
+    @anim\update dt
+    @swipe\update dt
+
     desired = Vec!
     if @isDown "up"
       desired -= Vec 0, 1
@@ -54,10 +64,23 @@ class Player
     @lunge += dt * 2
     @lunge = math.min @lunge, if @isDown "secondary" then 3.5 else 1.5
 
+    if @vel!\len2! > (10^2)
+      @walk\gotoFrame 1 unless @anim == @walk
+      @anim = @walk
+    else
+      @idle\gotoFrame 1 unless @anim == @idle
+      @anim = @idle
+
   draw: =>
     x, y = @body\getPosition!
     lg.setColor 255, 255, 255
-    lg.circle "fill", x, y, 15
+    @anim\draw Sprite.player, x, y, (Vec(lm.getPosition!)-SCREEN/2)\angleTo!, 1, 1, 7, 8
+    @primary\draw Sprite.swipe, x, y, @primary.rot, 1, 1, -5, 9 if @primary
+
+  pos: =>
+    Vec @body\getPosition!
+  vel: =>
+    Vec @body\getLinearVelocity!
 
   rayCast: (pos, delta, cb) =>
     tgt = pos + delta
@@ -78,6 +101,9 @@ class Player
       res[other] = true
       return -1
 
+    @primary = @swipe
+    @primary.rot = delta\angleTo!
+    @primary\resume!
 
     @rayCast pos, delta, cb
     @rayCast pos, delta\rotated( .4), cb
@@ -88,11 +114,6 @@ class Player
         other\hit delta
       if other.body
         other.body\applyLinearImpulse (delta/2)\unpack!
-
-  pos: =>
-    Vec @body\getPosition!
-  vel: =>
-    Vec @body\getLinearVelocity!
 
   secondary_down: =>
     if @lunge > 1.5
@@ -129,7 +150,7 @@ class Game
     @colorAmnt = 0
     Flux.to @, 0.3, fadeOut: 0
 
-    @timeleft = 3-- 30
+    @timeleft = 30
 
     @map = Sti.new "assets/maps/level-#{level}"
     @world = lp.newWorld!
@@ -170,10 +191,8 @@ class Game
     dt *= @timescale
     if @beastmode
       @beastmode -= dt
-      if @beastmode < 0
-        @beastmode = nil
-        -- @TODO: player animation
-        Flux.to(@, 1, colorAmnt: 0)
+      if @beastmode < 2
+        @beastfade = Flux.to(@, 2, colorAmnt: 0)\oncomplete (-> @beastmode, @beastfade = nil, nil) unless @beastfade
 
     delta = Vec(@player.body\getPosition!) - @lag
     @lag += delta * .1
@@ -230,8 +249,10 @@ class Game
   BEAST_DURATION = 8
   do_beast: =>
     @beastmode = BEAST_DURATION
+    @beastfade\stop! if @beastfade
+    @beastfade = nil
     Flux.to(@, 0.2, timescale: 0.7)\after(0.2, timescale: 1)\delay 0.4
-    Flux.to(@, 0.4, colorAmnt: 0.6)
+    @beastfade = Flux.to(@, 1.4, colorAmnt: 0.6)\oncomplete -> @beastfade = nil
 
   addScore: (kind) =>
     @score.good += if kind == "Enemy" then 20 else -5

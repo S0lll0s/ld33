@@ -9,7 +9,7 @@ Vec     = require "lib.hump-vec"
 Sti     = require "lib.sti"
 Bump    = require "lib.bump"
 
-import Sprites, Animations from require "sprites"
+import Sprite, Animation from require "sprites"
 
 SCREEN = Vec!
 

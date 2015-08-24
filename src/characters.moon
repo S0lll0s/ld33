@@ -9,10 +9,10 @@ class Person
     @scale, @rot = 1, 0
 
     @color = {100, 255, 100, 255}
-    @soul = Animations.soul
-    --@skin = Sprites.soul
-    --@anim = Animations.person
-    @skin, @anim = Sprites.soul, @soul
+    @soul = Animation.soul
+    --@skin = Sprite.soul
+    --@anim = Animation.person
+    @skin, @anim = Sprite.soul, @soul
 
     @steering = Vec!
     @wander_angle = math.random!*math.pi*2
@@ -22,7 +22,7 @@ class Person
 
     if GAME.beastmode
       lg.setColor 255, 255, 255, @color[4]
-      @soul\draw Sprites.soul, pos.x, pos.y + (@color[4]-255)*.05, @rot, @scale, @scale, 5, 5
+      @soul\draw Sprite.soul, pos.x, pos.y + (@color[4]-255)*.05, @rot, @scale, @scale, 5, 5
     else
       lg.setColor @color
       @anim\draw @skin, pos.x, pos.y + (@color[4]-255)*.05, @rot, @scale, @scale, 5, 5

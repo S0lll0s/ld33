@@ -1,7 +1,7 @@
 {graphics: lg} = love
 
 class Menu
-  anim:  Animations.soul
+  anim:  Animation.soul
   shader: love.graphics.isSupported("shader") and love.graphics.newShader "
     extern number blink;
     
@@ -34,7 +34,7 @@ class Menu
 
     lg.setColor 255, 150, 155, @logoalpha*255
     lg.setShader @shader
-    @anim\draw Sprites.soul, SCREEN.x/2, 250, 0, 4, 4 -- Sprites.logo
+    @anim\draw Sprite.soul, SCREEN.x/2, 250, 0, 4, 4 -- Sprites.logo
     lg.setShader!
 
     lg.setColor 255, 255, 255, @play*255
