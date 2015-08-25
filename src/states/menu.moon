@@ -27,14 +27,15 @@ class Menu
       @swag = Flux.to(@, .5, play: 0)\after(.5, play:1)\oncomplete blink
     Flux.to(@, 0.5, fadeOut: 0)\after(0.4, logoalpha: 1)\oncomplete(blink)\after(.8, blink: 1)\ease("linear")\after(.8, blink: 0)\ease "linear"
     @shader\send "blink", 0 if @shader
+    @size = Vec Sprite.logo\getDimensions!
 
   draw: (prev) =>
-    lg.setColor 120, 120, 120
-    lg.rectangle "fill", 0, 0, SCREEN\unpack!
+    --lg.setColor 120, 120, 120
+    --lg.rectangle "fill", 0, 0, SCREEN\unpack!
 
     lg.setColor 255, 150, 155, @logoalpha*255
     lg.setShader @shader
-    @anim\draw Sprite.soul, SCREEN.x/2, 250, 0, 4, 4 -- Sprites.logo
+    lg.draw Sprite.logo, ((SCREEN-@size-Vec 0, 300)/2)\unpack! -- Sprites.logo
     lg.setShader!
 
     lg.setColor 255, 255, 255, @play*255
@@ -57,4 +58,4 @@ class Menu
       when "escape"
         love.event.quit!
 
-Menu
+Menu!

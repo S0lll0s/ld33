@@ -13,8 +13,9 @@ Grid = {}
 for name, anim in pairs {
     soul:         {w: 10, h: 13, "1-2", 1, 1, 1, 3, 1},
     swipe:        {w: 6,  h: 19, s: 0.02, "1-13", loop: "pauseAtEnd", 1},
-    player_walk:  {w: 13, h: 16, sprite: "player", s: 0.1, "4-7", 1}
-    player_idle:  {w: 13, h: 16, sprite: "player", "3-1", 1, "1-3", 1, 3, 1, 3, 1}
+    player_walk:  {w: 13, h: 16, sprite: "player", s: 0.1, "4-7", 1},
+    player_idle:  {w: 13, h: 16, sprite: "player", "3-1", 1, "1-3", 1, 3, 1, 3, 1},
+    person:       {w: 10, h: 14, sprite: "enemy", s: 0.2, "1-2", 1, 1, 1, 3, 1}
   }
   anim.sprite or= name
   Grid[anim.sprite] = Anim8.newGrid anim.w, anim.h, Sprite[anim.sprite]\getDimensions! unless Grid[anim.sprite]

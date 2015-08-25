@@ -17,7 +17,7 @@ class GameOver
     true
 
   keypressed: (prev, key) =>
-    St8.resume!
+    St8.pause require "states.menu" -- @FIXME !!!
     true
 
 GameOver!

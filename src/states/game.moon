@@ -14,6 +14,7 @@ mousetrans = {lmb: "l", rmb: "r", mmb: "m", m4: "x1", m5: "x", mwup: "wu", mwdn:
 class Player
   new: (x, y, @controls=up: "w", left: "a", right: "d", down: "s", primary: "lmb", secondary: "rmb", charge: "mmb") =>
     @body = lp.newBody GAME.world, x, y, "dynamic"
+    @color = {1, 1, 1}
     @fix  = lp.newFixture @body, lp.newCircleShape 8
     @body\setUserData @
     @body\setBullet true
@@ -78,8 +79,9 @@ class Player
 
   draw: =>
     x, y = @body\getPosition!
+    lg.setColor @color[1]*255, @color[2]*255, @color[3]*255
+    @anim\draw (if GAME.beastmode then Sprite.beast else Sprite.player), x, y, @facing\angleTo!, 1, 1, 7, 8
     lg.setColor 255, 255, 255
-    @anim\draw Sprite.player, x, y, @facing\angleTo!, 1, 1, 7, 8
     @primary\draw Sprite.swipe, x, y, @primary.rot, 1, 1, -5, 9 if @primary
 
   pos: =>
@@ -145,11 +147,18 @@ class Game
     vec4 position( mat4 transform_projection, vec4 vertex_position ) {
       return transform_projection * vertex_position;
     }"
-
+  
+  unzip = (tbl) ->
+    res = {}
+    for i in *tbl
+      table.insert res, i.x
+      table.insert res, i.y
+    unpack res
   enter: (level=1) =>
     GAME = @
 
     @ents   = {}
+    @spawns = {}
     @score  = good: 0, bad: 0, scale: 1, grot: 0, brot: 0
     @timescale = 1
     @fadeOut   = 1
@@ -167,9 +176,19 @@ class Game
     @collision = {}
     assert @map.layers.collision and @map.layers.collision.type == "objectgroup", "no collision layer"
     for box in *@map.layers.collision.objects
-      body = lp.newBody @world, box.x + box.width/2, box.y + box.height/2, "static"
-      fix  = lp.newFixture body, lp.newRectangleShape box.width, box.height
-      body\setUserData table.insert @collision, :body, :fix, world: true
+      switch box.shape
+        when "rectangle"
+          body = lp.newBody @world, box.x + box.width/2, box.y + box.height/2, "static"
+          fix  = lp.newFixture body, lp.newRectangleShape box.width, box.height
+          body\setUserData table.insert @collision, :body, :fix, world: true
+        when "polygon"
+          body = lp.newBody @world, 0, 0
+          fix  = lp.newFixture body, lp.newPolygonShape unzip box.polygon
+          body\setUserData table.insert @collision, :body, :fix, world: true
+        when "polyline"
+          body = lp.newBody @world, 0, 0
+          fix  = lp.newFixture body, lp.newChainShape false, unzip box.polyline
+          body\setUserData table.insert @collision, :body, :fix, world: true
     @map\removeLayer "collision"
 
     assert @map.layers.entities and @map.layers.entities.type == "objectgroup", "no entitity layer"
@@ -177,13 +196,17 @@ class Game
       switch ent.type
         when "player"
           @player = Player ent.x, ent.y
+        else
+          table.insert @spawns, x: ent.x, y: ent.y, w: ent.width, h: ent.height
+    @map\removeLayer "entities"
     
     assert @player, "no player"
     @lag = @player\pos!\clone!
     @camera\setPosition @lag\unpack!
 
-    for i=1,20
-      table.insert @ents, (if math.random! < 0.4 then Enemy else Person) @lag + Vec(math.random!, math.random!) * 200
+    for i=1,40
+      spawn = math.choice @spawns
+      table.insert @ents, (if math.random! < 0.4 then Enemy else Person) spawn.x + math.random!*spawn.w, spawn.y + math.random!*spawn.h
     
   update: (prev, dt) =>
     return prev if prev
@@ -223,8 +246,6 @@ class Game
     lg.setCanvas @canvas
     @camera\draw ->
       @map\draw!
-      for obj in *@collision
-        lg.polygon "line", obj.body\getWorldPoints obj.fix\getShape!\getPoints!
       @player\draw!
       for ent in *@ents
         ent\draw! if ent.draw and not ent.destroy
@@ -237,13 +258,14 @@ class Game
       lg.draw @canvas
       lg.setShader!
 
-    lg.setColor 0, 0, 0
-    lg.rectangle "fill", 20, 22, 10*@player.lunge, 8
-    lg.setColor 255, 255, 255
-    lg.rectangle "line", 20, 20, 150, 10
+    lg.setColor 0, 0, 0, 200
+    lg.rectangle "fill", 0, 0, SCREEN.x, 70
 
-    lg.setColor 0, 0, 0, 100
-    lg.rectangle "fill", 0, 0, SCREEN.x, 100
+    lg.setColor 255, 255, 255, 255
+    lg.print "LUNGE", 30, 14
+    lg.print "BEAST", 30, 44
+    @bar 100, 10, math.abs (@beastmode and @player.lunge or 0)/3.5
+    @bar 100, 40, (@beastmode or 0)/BEAST_DURATION
 
     x = (SCREEN.x - 150)
     lg.printf "SCORE", x-50, 20, 100, "center"
@@ -259,15 +281,21 @@ class Game
     lg.setColor 0, 0, 0, @fadeOut * 255
     lg.rectangle "fill", 0, 0, SCREEN\unpack!
 
+  bar: (x, y, val) =>
+    lg.setScissor x+2, y, 180*val, 21
+    lg.draw Sprite.bar_bottom, x, y
+    lg.setScissor!
+    lg.draw Sprite.bar_top, x, y
+
   BEAST_DURATION = 8
   do_beast: =>
     Sound.growl! unless @beastmode
-    --Sound.mutate! unless @beastmode
     @beastmode = BEAST_DURATION
     @beastfade\stop! if @beastfade
     @beastfade = nil
     Flux.to(@, 0.2, timescale: 0.7)\after(0.2, timescale: 1)\delay 0.4
     @beastfade = Flux.to(@, 1.4, colorAmnt: 0.6)\oncomplete -> @beastfade = nil
+    Flux.to(@player.color, 0.4, {1, .1, .1})\after(0.4, {1, 1, 1})\delay .6
 
   addScore: (kind) =>
     @score.good += if kind == "Enemy" then 20 else -5
@@ -284,8 +312,6 @@ class Game
       when "escape", "p"
         St8.push require "states.pause"
         true
-      when "lshift"
-        @do_beast!
       else
         @player\keypressed key
 

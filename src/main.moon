@@ -62,10 +62,10 @@ love.resize = (w, h) ->
 love.load = ->
   SCREEN = Vec love.graphics.getDimensions!
   
-  -- love.graphics.setNewFont "assets/font.ttf", 18
+  love.graphics.setNewFont "assets/font.ttf", 18
 
   St8.order "draw", "bottom"
-  St8.init  require "states.menu"
+  St8.init  require "states.intro"
   St8.pause require("states.game")! if arg[#arg] == "game"
 
   Sound.hit, Sound.mutate, Sound.demutate -- preload these

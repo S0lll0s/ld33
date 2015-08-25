@@ -1,18 +1,17 @@
 {graphics: lg, keyboard: lk, mouse: lm, physics: lp} = love
 
+local Person, Enemy
 class Person
-  new: (pos, world) =>
-    @body = lp.newBody GAME.world, pos.x, pos.y, "dynamic"
+  new: (x, y) =>
+    @body = lp.newBody GAME.world, x, y, "dynamic"
     @fix  = lp.newFixture @body, lp.newCircleShape 6
     @body\setUserData @
 
-    @scale, @rot = 1, 0
+    @scale, @rot, @alpha = 1, 0, 1
 
-    @color = {100, 255, 100, 255}
     @soul = Animation.soul
-    --@skin = Sprite.soul
-    --@anim = Animation.person
-    @skin, @anim = Sprite.soul, @soul
+    @skin = Sprite["civilian-#{math.random 1, 4}"]
+    @anim = Animation.person
 
     @steering = Vec!
     @wander_angle = math.random!*math.pi*2
@@ -20,16 +19,16 @@ class Person
   draw: =>
     pos = @pos!
 
+    lg.setColor 255, 255, 255, @alpha*255
     if GAME.beastmode
-      lg.setColor 255, 255, 255, @color[4]
-      @soul\draw Sprite.soul, pos.x, pos.y + (@color[4]-255)*.05, @rot, @scale, @scale, 5, 5
+      @soul\draw Sprite.soul, pos.x, pos.y + (@alpha-1)*.05, @rot, @scale, @scale, 5, 5
     else
-      lg.setColor @color
-      @anim\draw @skin, pos.x, pos.y + (@color[4]-255)*.05, @rot, @scale, @scale, 5, 5
+      @anim\draw @skin, pos.x, pos.y, @vel!\angleTo!, @scale, @scale, 5, 7
 
   MAX_FORCE = 10
   MAX_VEL   = 50
   update: (dt) =>
+    return if (GAME.player\pos! - @pos!)\len2! > 300^2
     @steering\set 0, 0
     if GAME.beastmode
       @soul\update dt * math.random! * 2
@@ -47,14 +46,17 @@ class Person
 
   hit: (delta) =>
     @dead = true
-    Flux.to @color, 1, [4]: 0
-    Flux.to(@, 1, rot: math.random!-0.5, scale: 1.2)\oncomplete ->
+    Flux.to(@, 1, alpha: 0, rot: math.random!-0.5, scale: 1.2)\oncomplete ->
       @destroy = true
       @body\destroy! unless @body\isDestroyed!
 
     Sound.hit!
 
     GAME\addScore @@__name, 1
+
+    Flux.to(@, 6, {})\oncomplete ->
+      spawn = math.choice GAME.spawns
+      table.insert GAME.ents, (if math.random! < 0.4 then Enemy else Person) spawn.x + math.random!*spawn.w, spawn.y + math.random!*spawn.h
 
   vel: =>
     Vec @body\getLinearVelocity!
@@ -110,7 +112,7 @@ class Person
 class Enemy extends Person
   new: (...) =>
     super ...
-    @color = {255, 100, 100, 255}
+    @skin = Sprite.enemy
 
 {
   :Person
