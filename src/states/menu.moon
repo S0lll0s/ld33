@@ -28,6 +28,8 @@ class Menu
     Flux.to(@, 0.5, fadeOut: 0)\after(0.4, logoalpha: 1)\oncomplete(blink)\after(.8, blink: 1)\ease("linear")\after(.8, blink: 0)\ease "linear"
     @shader\send "blink", 0 if @shader
     @size = Vec Sprite.logo\getDimensions!
+  resume: =>
+    @enter!
 
   draw: (prev) =>
     --lg.setColor 120, 120, 120
