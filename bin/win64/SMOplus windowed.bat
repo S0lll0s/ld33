@@ -1,1 +1,0 @@
-SMOplus.exe window
