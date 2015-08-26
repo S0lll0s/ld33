@@ -3,5 +3,6 @@
 *.zip
 build
 dist
+!src/conf.lua
 !src/lib/**
 !src/assets/maps/*.lua
